@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+{% block title %}Model Stock &amp; Flow{% endblock %}
+{% block content %}
+<h1 class="h3 mb-1">Model Stock &amp; Flow Persediaan</h1>
+<p class="text-muted">Model sistem dinamik dengan satu stock (stok persediaan), dua flow (barang masuk dan penjualan), dan beberapa variabel bantu. Langkah waktu: 1 hari.</p>
+
+<div class="panel mb-4">
+  <h2 class="h6">Diagram</h2>
+  <div class="diagram-wrap">
+  <svg viewBox="0 0 900 390" role="img" aria-labelledby="dg-t dg-d" class="sfd">
+    <title id="dg-t">Diagram Stock and Flow persediaan barang</title>
+    <desc id="dg-d">Awan sumber mengalir lewat flow Barang Masuk ke stock Stok Persediaan, lalu lewat flow Penjualan ke awan tujuan. Lead time, kebijakan pemesanan, dan permintaan memengaruhi kedua flow.</desc>
+    <defs>
+      <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+        <path d="M0 0 L10 5 L0 10 z" class="arrow-fill"/>
+      </marker>
+      <marker id="arr-i" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+        <path d="M0 0 L10 5 L0 10 z" class="info-fill"/>
+      </marker>
+    </defs>
+
+    <!-- awan sumber & tujuan -->
+    <path class="cloud" d="M52 205 q-22 0 -22 -18 q0 -16 18 -17 q4 -16 22 -14 q14 -8 26 4 q18 0 18 16 q0 17 -20 19 z"/>
+    <path class="cloud" d="M812 205 q-22 0 -22 -18 q0 -16 18 -17 q4 -16 22 -14 q14 -8 26 4 q18 0 18 16 q0 17 -20 19 z"/>
+    <text x="75" y="232" text-anchor="middle" class="sm">pemasok</text>
+    <text x="835" y="232" text-anchor="middle" class="sm">pelanggan</text>
+
+    <!-- flow masuk -->
+    <line x1="125" y1="190" x2="355" y2="190" class="flow" marker-end="url(#arr)"/>
+    <polygon points="225,176 255,204 255,176 225,204" class="valve"/>
+    <circle cx="240" cy="190" r="6" class="valve-c"/>
+    <text x="240" y="160" text-anchor="middle" class="lbl">Barang Masuk</text>
+
+    <!-- stock -->
+    <rect x="360" y="145" width="180" height="90" rx="3" class="stock"/>
+    <text x="450" y="186" text-anchor="middle" class="lbl-w">Stok Persediaan</text>
+    <text x="450" y="208" text-anchor="middle" class="sm-w">stok awal = input</text>
+
+    <!-- flow keluar -->
+    <line x1="545" y1="190" x2="785" y2="190" class="flow" marker-end="url(#arr)"/>
+    <polygon points="655,176 685,204 685,176 655,204" class="valve"/>
+    <circle cx="670" cy="190" r="6" class="valve-c"/>
+    <text x="670" y="236" text-anchor="middle" class="lbl">Penjualan</text>
+
+    <!-- variabel bantu: sisi permintaan -->
+    <text x="560" y="36" text-anchor="middle" class="aux">Permintaan data (Units Sold)</text>
+    <text x="780" y="36" text-anchor="middle" class="aux">Perubahan permintaan (%)</text>
+    <text x="670" y="100" text-anchor="middle" class="aux">Permintaan</text>
+    <path d="M580 44 L650 86" class="info" marker-end="url(#arr-i)"/>
+    <path d="M760 44 L694 86" class="info" marker-end="url(#arr-i)"/>
+    <path d="M670 108 L670 176" class="info" marker-end="url(#arr-i)"/>
+    <path d="M500 145 Q540 112 654 178" class="info" marker-end="url(#arr-i)"/>
+    <text x="440" y="108" class="sm">batas: stok tersedia</text>
+
+    <!-- variabel bantu: sisi pengadaan -->
+    <text x="130" y="300" text-anchor="middle" class="aux">Lead time (L)</text>
+    <text x="300" y="300" text-anchor="middle" class="aux">Titik pesan ulang (s), level S</text>
+    <text x="590" y="300" text-anchor="middle" class="aux">Posisi persediaan = stok + pesanan di jalan</text>
+    <text x="300" y="368" text-anchor="middle" class="aux">Tingkat layanan, cakupan pesanan</text>
+    <path d="M150 286 L228 202" class="info" marker-end="url(#arr-i)"/>
+    <path d="M290 286 L244 204" class="info" marker-end="url(#arr-i)"/>
+    <path d="M300 354 L300 312" class="info" marker-end="url(#arr-i)"/>
+    <path d="M458 296 L408 296" class="info" marker-end="url(#arr-i)"/>
+    <path d="M470 238 L520 284" class="info" marker-end="url(#arr-i)"/>
+  </svg>
+  </div>
+  <p class="small text-muted mb-0 mt-2">Garis tebal = aliran barang (flow). Garis putus-putus = informasi yang memengaruhi flow. Umpan balik: posisi persediaan menentukan kapan pesanan dibuat.</p>
+</div>
+
+<div class="row g-4">
+  <div class="col-lg-6">
+    <div class="panel h-100">
+      <h2 class="h6">Persamaan model</h2>
+      <ol class="eq">
+        <li><code>Stok(t+1) = Stok(t) + Barang_Masuk(t) &minus; Penjualan(t)</code></li>
+        <li><code>Permintaan(t) = Permintaan_Data(t) &times; (1 + Perubahan%)</code>, dibulatkan ke unit</li>
+        <li><code>Penjualan(t) = min(Permintaan(t), Stok(t) + Barang_Masuk(t))</code>. Selisihnya adalah permintaan tak terpenuhi.</li>
+        <li><code>Posisi(t) = Stok(t) + pesanan yang belum tiba</code></li>
+        <li><code>s = &mu;&middot;L + z&middot;&sigma;&middot;&radic;L</code> dan <code>S = s + &mu;&middot;H</code></li>
+        <li>Jika <code>Posisi(t) &le; s</code>, pesan <code>S &minus; Posisi(t)</code> unit; tiba pada hari <code>t + L</code></li>
+      </ol>
+      <p class="small text-muted mb-0">&mu; dan &sigma; adalah rata-rata dan simpangan baku penjualan harian, z diturunkan dari tingkat layanan, L = lead time, H = cakupan pesanan (hari).</p>
+    </div>
+  </div>
+  <div class="col-lg-6">
+    <div class="panel h-100">
+      <h2 class="h6">Tiga mode barang masuk</h2>
+      <dl class="mb-0">
+        <dt>Kebijakan pemesanan (default)</dt>
+        <dd>Barang masuk dihasilkan oleh aturan (s, S) di atas. Pesanan otomatis menyesuaikan konsumsi.</dd>
+        <dt>Historis dari data</dt>
+        <dd>Memakai <em>Units Ordered</em> pada data asli sebagai pesanan harian, tiba setelah lead time.{% if not meta.has_orders %} <strong>Tidak tersedia</strong> pada dataset yang sedang dipakai.{% endif %}</dd>
+        <dt>Manual</dt>
+        <dd>Jumlah tetap per hari yang Anda input, tiba pada hari yang sama tanpa lead time.</dd>
+      </dl>
+    </div>
+  </div>
+
+  <div class="col-12">
+    <div class="panel">
+      <h2 class="h6">Asumsi stok dan pengadaan</h2>
+      <div class="row g-4">
+        <div class="col-lg-6">
+          <h3 class="h6 text-muted">Stok dan permintaan</h3>
+          <ul class="assump">
+            <li><strong>Permintaan = penjualan harian pada data</strong> ({{ 'Units Sold' if meta.has_orders else 'sales' }}), dijumlahkan untuk toko dan barang yang dipilih. Data tidak mencatat penjualan yang gagal karena stok habis, jadi penjualan dianggap sama dengan permintaan.</li>
+            <li><strong>Stok awal</strong> {% if meta.has_inventory %}diambil dari <em>Inventory Level</em> aktual pada tanggal mulai simulasi (dijumlahkan), kecuali Anda mengisinya sendiri.{% else %}tidak ada pada dataset, sehingga diasumsikan sebesar level S, kecuali Anda mengisinya sendiri.{% endif %}</li>
+            {% if meta.has_inventory %}
+            <li><strong>Stok pada data tidak dipakai sebagai neraca.</strong> <em>Inventory Level</em> pada hari berikutnya tidak mengikuti rumus stok sebelumnya + pesanan &minus; penjualan, dan{% if meta.order_to_sales_pct %} total <em>Units Ordered</em> hanya sekitar {{ meta.order_to_sales_pct }}% dari total <em>Units Sold</em>{% endif %}. Karena itu stok dihitung ulang oleh model, bukan disalin dari data.</li>
+            {% endif %}
+            <li><strong>Lost sales:</strong> permintaan yang tidak terpenuhi hilang, tidak ditunda (tanpa backorder). Stok tidak pernah negatif.</li>
+            <li><strong>Skenario +20% dan +50%</strong> mengalikan permintaan setiap hari. Pola naik-turun harian tetap berasal dari data asli.</li>
+          </ul>
+        </div>
+        <div class="col-lg-6">
+          <h3 class="h6 text-muted">Pengadaan</h3>
+          <ul class="assump">
+            <li><strong>Lead time 2 hari</strong> sebagai nilai awal. Dataset tidak mencatat waktu pengiriman, jadi ini asumsi yang dapat Anda ubah.</li>
+            <li><strong>Tinjauan harian:</strong> posisi persediaan diperiksa setiap akhir hari.</li>
+            <li><strong>Tingkat layanan 95%</strong> (z &asymp; 1,645) dan <strong>cakupan pesanan 3 hari</strong> sebagai nilai awal; keduanya dapat diubah.</li>
+            <li>&mu; dan &sigma; dihitung dari penjualan <em>sebelum</em> periode simulasi, supaya model tidak memakai data masa depan.</li>
+            <li><strong>Pesanan di jalan pada hari pertama:</strong> sebesar &mu; per hari (kondisi tunak), kecuali mode historis yang memakai pesanan nyata.</li>
+            <li>Parameter s dan S <strong>dikunci pada kondisi baseline</strong> sehingga dampak lonjakan permintaan terlihat. Opsi "pengadaan adaptif" menghitung ulang s dan S untuk tiap skenario.</li>
+            <li>Tidak dimodelkan: kapasitas gudang, biaya, kerusakan, jumlah pesanan minimum.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

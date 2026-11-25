@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Simulasi Persediaan{% endblock %} | Simulasi Sistem Dinamik</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='vendor/bootstrap.min.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <nav class="navbar navbar-expand-md app-nav" aria-label="Navigasi utama">
+    <div class="container-xl">
+      <a class="navbar-brand" href="{{ url_for('dashboard') }}">Simulasi Persediaan Barang</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav"
+              aria-controls="nav" aria-expanded="false" aria-label="Buka menu">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="nav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a class="nav-link {{ 'active' if page == 'dashboard' }}" href="{{ url_for('dashboard') }}">Dashboard</a></li>
+          <li class="nav-item"><a class="nav-link {{ 'active' if page == 'model' }}" href="{{ url_for('model_page') }}">Model Stock &amp; Flow</a></li>
+          <li class="nav-item"><a class="nav-link {{ 'active' if page == 'simulasi' }}" href="{{ url_for('simulasi') }}">Simulasi Skenario</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container-xl py-4">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="container-xl app-footer">
+    Data: {{ "{:,}".format(meta.rows).replace(",", ".") }} baris, {{ meta.date_min }} s.d. {{ meta.date_max }}
+    ({{ meta.stores|length }} toko, {{ meta['items']|length }} barang).
+  </footer>
+
+  <script src="{{ url_for('static', filename='vendor/bootstrap.bundle.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='vendor/chart.umd.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/common.js') }}"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

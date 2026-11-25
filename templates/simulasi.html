@@ -1,0 +1,158 @@
+{% extends "base.html" %}
+{% block title %}Simulasi Skenario{% endblock %}
+{% block content %}
+<h1 class="h3 mb-1">Simulasi Skenario Perubahan Permintaan</h1>
+<p class="text-muted">Bandingkan baseline dengan kenaikan permintaan 20% dan 50% menggunakan data permintaan asli sebagai dasar.</p>
+
+<div class="row g-4">
+  <div class="col-lg-4">
+    <form class="panel" id="sim-form" novalidate>
+      <h2 class="h6">Data yang disimulasikan</h2>
+      <div class="row g-2 mb-3">
+        <div class="col-6">
+          <label class="form-label small mb-1" for="store">Toko</label>
+          <select class="form-select form-select-sm" id="store" name="store">
+            <option value="all">Semua toko</option>
+            {% for s in meta.stores %}<option value="{{ s }}">{{ s }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="col-6">
+          <label class="form-label small mb-1" for="item">Barang</label>
+          <select class="form-select form-select-sm" id="item" name="item">
+            <option value="all">Semua barang</option>
+            {% for i in meta['items'] %}<option value="{{ i }}">{{ i }}</option>{% endfor %}
+          </select>
+        </div>
+        {% if meta.has_category %}
+        <div class="col-12">
+          <label class="form-label small mb-1" for="category">Kategori</label>
+          <select class="form-select form-select-sm" id="category" name="category">
+            <option value="all">Semua kategori</option>
+            {% for c in meta.categories %}<option value="{{ c }}">{{ c }}</option>{% endfor %}
+          </select>
+        </div>
+        {% endif %}
+        <div class="col-7">
+          <label class="form-label small mb-1" for="start_date">Tanggal mulai</label>
+          <input type="date" class="form-control form-control-sm" id="start_date" name="start_date"
+                 min="{{ meta.date_min }}" max="{{ meta.date_max }}">
+        </div>
+        <div class="col-5">
+          <label class="form-label small mb-1" for="horizon">Lama (hari)</label>
+          <input type="number" class="form-control form-control-sm" id="horizon" name="horizon" value="90" min="7" max="365">
+        </div>
+      </div>
+
+      <h2 class="h6">Stok awal</h2>
+      <div class="mb-3">
+        <label class="form-label small mb-1" for="initial_stock">Stok awal (unit)</label>
+        <input type="number" class="form-control form-control-sm" id="initial_stock" name="initial_stock" min="0" step="1"
+               placeholder="{{ 'Kosong = Inventory Level aktual' if meta.has_inventory else 'Kosong = otomatis (level S)' }}">
+      </div>
+
+      <h2 class="h6">Barang masuk (pengadaan)</h2>
+      <div class="mb-2" role="radiogroup" aria-label="Mode barang masuk">
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="mode" id="m-policy" value="policy" checked>
+          <label class="form-check-label" for="m-policy">Kebijakan pemesanan (s, S)</label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="mode" id="m-hist" value="historical" {{ 'disabled' if not meta.has_orders }}>
+          <label class="form-check-label" for="m-hist">Historis dari data (Units Ordered){{ ' - tidak tersedia' if not meta.has_orders }}</label>
+        </div>
+        <div class="form-check">
+          <input class="form-check-input" type="radio" name="mode" id="m-manual" value="manual">
+          <label class="form-check-label" for="m-manual">Input manual per hari</label>
+        </div>
+      </div>
+      <div class="row g-2 mb-3">
+        <div class="col-6 mode-policy mode-historical">
+          <label class="form-label small mb-1" for="lead_time">Lead time (hari)</label>
+          <input type="number" class="form-control form-control-sm" id="lead_time" name="lead_time" value="2" min="1" max="30">
+        </div>
+        <div class="col-6 mode-policy">
+          <label class="form-label small mb-1" for="service_level">Tingkat layanan</label>
+          <select class="form-select form-select-sm" id="service_level" name="service_level">
+            <option value="90">90%</option><option value="95" selected>95%</option>
+            <option value="97.5">97,5%</option><option value="99">99%</option>
+          </select>
+        </div>
+        <div class="col-6 mode-policy">
+          <label class="form-label small mb-1" for="cover_days">Cakupan pesanan (hari)</label>
+          <input type="number" class="form-control form-control-sm" id="cover_days" name="cover_days" value="3" min="1" max="60">
+        </div>
+        <div class="col-12 mode-policy">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" id="adaptive" name="adaptive">
+            <label class="form-check-label small" for="adaptive">Pengadaan adaptif (hitung ulang s dan S untuk tiap skenario)</label>
+          </div>
+        </div>
+        <div class="col-12 mode-manual d-none">
+          <label class="form-label small mb-1" for="manual_inflow">Barang masuk per hari (unit)</label>
+          <input type="number" class="form-control form-control-sm" id="manual_inflow" name="manual_inflow" min="0" step="1" placeholder="Kosong = rata-rata penjualan harian">
+        </div>
+      </div>
+
+      <h2 class="h6">Skenario permintaan</h2>
+      <p class="small text-muted mb-2">Selalu dijalankan: baseline, +20%, dan +50%.</p>
+      <div class="mb-3">
+        <label class="form-label small mb-1" for="custom_pct">Skenario tambahan (%), opsional</label>
+        <input type="number" class="form-control form-control-sm" id="custom_pct" name="custom_pct" min="-90" max="300" step="1" placeholder="mis. -10 atau 100">
+      </div>
+
+      <div id="form-error" class="alert alert-danger py-2 small d-none" role="alert"></div>
+      <button type="submit" class="btn btn-primary w-100" id="run-btn">Jalankan simulasi</button>
+    </form>
+  </div>
+
+  <div class="col-lg-8" id="results" aria-live="polite">
+    <div class="panel text-muted" id="placeholder">Menjalankan simulasi awal...</div>
+    <div class="d-none" id="out">
+      <div class="panel mb-4">
+        <h2 class="h6">Ringkasan</h2>
+        <p class="small text-muted mb-2" id="run-summary"></p>
+        <ul class="insights mb-0" id="insights"></ul>
+      </div>
+
+      <div class="panel mb-4">
+        <h2 class="h6">Perubahan stok per hari</h2>
+        <div class="chart-box tall"><canvas id="c-stock"></canvas></div>
+        <p class="small text-muted mb-0 mt-2" id="stock-note"></p>
+      </div>
+
+      <div class="panel mb-4">
+        <h2 class="h6">Hasil simulasi per skenario</h2>
+        <div class="table-responsive">
+          <table class="table table-sm align-middle mb-0" id="kpi-table"></table>
+        </div>
+      </div>
+
+      <div class="row g-4 mb-4">
+        <div class="col-xl-6"><div class="panel h-100">
+          <h2 class="h6">Permintaan vs penjualan terpenuhi</h2>
+          <div class="chart-box"><canvas id="c-demand"></canvas></div>
+        </div></div>
+        <div class="col-xl-6"><div class="panel h-100">
+          <h2 class="h6">Fill rate dan hari stok habis</h2>
+          <div class="chart-box"><canvas id="c-kpi"></canvas></div>
+        </div></div>
+      </div>
+
+      <div class="panel">
+        <div class="d-flex flex-wrap justify-content-between align-items-end gap-2 mb-2">
+          <h2 class="h6 mb-0">Data harian</h2>
+          <div class="d-flex gap-2">
+            <select class="form-select form-select-sm" id="daily-scn" aria-label="Skenario untuk tabel harian"></select>
+            <button class="btn btn-outline-secondary btn-sm text-nowrap" id="csv-btn" type="button">Unduh CSV</button>
+          </div>
+        </div>
+        <div class="table-scroll">
+          <table class="table table-sm table-striped mb-0" id="daily-table"></table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}<script>window.META = {{ meta|tojson }};</script>
+<script src="{{ url_for('static', filename='js/simulasi.js') }}"></script>{% endblock %}

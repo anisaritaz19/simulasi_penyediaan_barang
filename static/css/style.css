@@ -1,0 +1,86 @@
+:root {
+  --ink: #1d2733;
+  --muted: #5c6877;
+  --paper: #f3f5f7;
+  --line: #d9dee4;
+  --steel: #2f5d8a;
+  --amber: #b87409;
+  --alert: #b3372f;
+  --ok: #2e7d5b;
+  --bs-body-font-family: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  --bs-body-color: var(--ink);
+  --bs-primary: var(--steel);
+}
+body { background: var(--paper); color: var(--ink); line-height: 1.55; }
+h1, h2, h3 { letter-spacing: -0.01em; }
+.text-muted { color: var(--muted) !important; }
+
+.app-nav { background: var(--ink); }
+.app-nav .navbar-brand { color: #fff; font-weight: 600; }
+.app-nav .nav-link { color: #c3ccd6; }
+.app-nav .nav-link:hover, .app-nav .nav-link.active { color: #fff; }
+.app-nav .nav-link.active { box-shadow: inset 0 -2px 0 #7fb0de; }
+.navbar-toggler { border-color: #5c6877; }
+.navbar-toggler-icon { filter: invert(1); }
+
+.panel { background: #fff; border: 1px solid var(--line); border-radius: 4px; padding: 1.1rem 1.25rem; }
+.panel > h2:first-child, .panel h2.h6 { font-weight: 600; margin-bottom: .75rem; }
+
+.btn-primary { --bs-btn-bg: var(--steel); --bs-btn-border-color: var(--steel);
+  --bs-btn-hover-bg: #264d73; --bs-btn-hover-border-color: #264d73;
+  --bs-btn-active-bg: #1f4263; --bs-btn-disabled-bg: var(--steel); }
+:focus-visible { outline: 2px solid #1b6fc2; outline-offset: 2px; }
+
+.kpi-strip { display: grid; grid-template-columns: repeat(2, 1fr); padding: 0; overflow: hidden; }
+@media (min-width: 992px) { .kpi-strip { grid-template-columns: repeat(4, 1fr); } }
+.kpi { padding: .9rem 1.1rem; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); margin: 0 -1px -1px 0; }
+.kpi dt { font-size: .8rem; font-weight: 400; color: var(--muted); }
+.kpi dd { margin: 0; white-space: nowrap; font-size: 1.45rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+.kpi small { font-size: .75rem; font-weight: 400; color: var(--muted); }
+
+.chart-box { position: relative; height: 280px; }
+.chart-box.tall { height: 340px; }
+
+.diagram-wrap { overflow-x: auto; }
+.sfd { width: 100%; min-width: 640px; height: auto; font-family: inherit; }
+.sfd .cloud { fill: #eef1f4; stroke: #8995a3; stroke-width: 1.5; }
+.sfd .flow { stroke: var(--ink); stroke-width: 4; }
+.sfd .arrow-fill { fill: var(--ink); }
+.sfd .info-fill { fill: #7a8795; }
+.sfd .valve { fill: #fff; stroke: var(--ink); stroke-width: 2; }
+.sfd .valve-c { fill: var(--ink); }
+.sfd .stock { fill: var(--steel); stroke: #1f4263; stroke-width: 2; }
+.sfd .info { stroke: #7a8795; stroke-width: 1.5; stroke-dasharray: 5 4; fill: none; }
+.sfd text { fill: var(--ink); }
+.sfd .lbl { font-size: 15px; font-weight: 600; }
+.sfd .lbl-w { font-size: 17px; font-weight: 600; fill: #fff; }
+.sfd .sm { font-size: 12px; fill: var(--muted); }
+.sfd .sm-w { font-size: 12px; fill: #dbe7f3; }
+.sfd .aux { font-size: 13px; fill: #3d4a59; }
+
+ol.eq { padding-left: 1.2rem; }
+ol.eq li { margin-bottom: .55rem; }
+code { color: var(--ink); background: #eef1f4; padding: .1rem .35rem; border-radius: 3px; font-size: .86em; }
+.assump { padding-left: 1.1rem; }
+.assump li { margin-bottom: .55rem; }
+dt { font-weight: 600; }
+dd { color: var(--muted); margin-bottom: .7rem; }
+
+.insights { padding-left: 1.1rem; }
+.insights li { margin-bottom: .4rem; }
+.table-scroll { max-height: 360px; overflow: auto; border: 1px solid var(--line); }
+.table-scroll thead th { position: sticky; top: 0; background: #eef1f4; z-index: 1; }
+#kpi-table th, #daily-table th { font-weight: 600; white-space: nowrap; }
+#kpi-table td, #daily-table td { font-variant-numeric: tabular-nums; white-space: nowrap; }
+#kpi-table th:not(:first-child), #kpi-table td:not(:first-child),
+#daily-table th:not(:first-child), #daily-table td:not(:first-child) { text-align: right; }
+.swatch { display: inline-block; width: 12px; height: 12px; border-radius: 2px; margin-right: .45rem; vertical-align: -1px; }
+.tag-bad { color: var(--alert); font-weight: 600; }
+.tag-ok { color: var(--ok); font-weight: 600; }
+.app-footer { color: var(--muted); font-size: .82rem; padding-bottom: 2rem; }
+.form-label { color: var(--muted); }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+
+#kpi-table, #daily-table { font-size: .85rem; }
+#kpi-table thead th { white-space: normal; vertical-align: bottom; min-width: 110px; }
+#kpi-table th:first-child { min-width: 190px; }
